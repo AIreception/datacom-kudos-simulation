@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Kudos — Recognise great work</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
+  <header class="app-header">
+    <div class="app-header__inner">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">K</span>
+        <div>
+          <h1 class="brand__title">Kudos</h1>
+          <p class="brand__tagline">Recognise great work</p>
+        </div>
+      </div>
+
+      <div id="user-menu" class="user-menu" hidden>
+        <div class="user-menu__identity">
+          <span class="user-menu__label">Signed in as</span>
+          <strong id="current-user-name"></strong>
+          <span id="current-user-role" class="badge badge--admin" hidden>Administrator</span>
+        </div>
+        <span class="badge badge--demo">Demo mode</span>
+        <button id="switch-user" class="button button--ghost button--small" type="button">Switch user</button>
+      </div>
+    </div>
+    <p class="demo-banner">
+      Demo mode — identity is simulated. Anyone using this app can select the
+      administrator. This demonstrates role-based behaviour, not secure authentication.
+    </p>
+  </header>
+
+  <main id="main-content" class="page">
+    <noscript>
+      <p class="notice notice--error">
+        This demo needs JavaScript to load kudos. Please enable JavaScript and reload.
+      </p>
+    </noscript>
+
+    <section id="identity-picker" class="card identity-picker" aria-labelledby="identity-title" hidden>
+      <div class="section-heading">
+        <div>
+          <h2 id="identity-title">Choose a demo user</h2>
+          <p class="muted">
+            Pick one of the fictional people below. This is not a login, and no
+            password is required. The administrator is marked so you can try
+            moderation.
+          </p>
+        </div>
+        <span class="badge badge--demo">Identity simulated</span>
+      </div>
+      <p id="picker-status" class="status" role="status" aria-live="polite"></p>
+      <ul id="identity-list" class="identity-list"></ul>
+    </section>
+
+    <div id="app-content" hidden>
+      <section id="moderation-panel" class="card moderation" aria-labelledby="moderation-title" hidden>
+        <div class="section-heading">
+          <div>
+            <h2 id="moderation-title">Moderation</h2>
+            <p class="muted">
+              Hide keeps a kudos in the database but removes it from the employee
+              feed. Delete removes it permanently.
+            </p>
+          </div>
+          <span class="badge badge--admin">Administrator</span>
+        </div>
+
+        <div class="moderation-toolbar">
+          <label for="visibility-filter">Show</label>
+          <select id="visibility-filter">
+            <option value="all">All kudos</option>
+            <option value="visible">Visible only</option>
+            <option value="hidden">Hidden only</option>
+          </select>
+        </div>
+
+        <p id="moderation-status" class="status" role="status" aria-live="polite"></p>
+        <ol id="moderation-list" class="moderation-list"></ol>
+        <p id="moderation-empty" class="empty-state" hidden>No kudos match this filter.</p>
+        <div class="load-more-row">
+          <button id="moderation-load-more" class="button button--secondary" type="button" hidden>Load more</button>
+        </div>
+      </section>
+
+      <section class="card composer" aria-labelledby="composer-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="composer-title">Give kudos</h2>
+            <p class="muted">A short, specific thank-you goes a long way.</p>
+          </div>
+        </div>
+
+        <form id="kudos-form" novalidate>
+          <div class="form-field">
+            <label for="recipient">Colleague</label>
+            <select id="recipient" name="recipient" required></select>
+            <p id="recipient-error" class="field-error" hidden></p>
+          </div>
+
+          <div class="form-field">
+            <label for="message">Message</label>
+            <textarea
+              id="message"
+              name="message"
+              rows="4"
+              required
+              aria-describedby="message-help char-count message-error"
+              placeholder="Thank you for…"
+            ></textarea>
+            <div class="form-hint-row">
+              <p id="message-help" class="hint">Plain text, 1–500 characters.</p>
+              <div id="char-count" class="char-count" aria-live="polite">0 / 500</div>
+            </div>
+            <p id="message-error" class="field-error" hidden></p>
+          </div>
+
+          <p id="form-error" class="field-error" role="alert" hidden></p>
+
+          <div class="form-actions">
+            <button id="submit-kudos" class="button button--primary" type="submit">Send kudos</button>
+            <span id="form-status" class="status" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card feed" aria-labelledby="feed-title">
+        <div class="section-heading">
+          <div>
+            <h2 id="feed-title">Recent kudos</h2>
+            <p class="muted">Recognition from across the team, newest first.</p>
+          </div>
+        </div>
+
+        <p id="feed-status" class="status" role="status" aria-live="polite"></p>
+        <p id="feed-empty" class="empty-state" hidden>No kudos yet. Be the first to recognise a colleague.</p>
+        <ol id="feed-list" class="feed-list"></ol>
+        <div class="load-more-row">
+          <button id="load-more" class="button button--secondary" type="button" hidden>Load more</button>
+          <button id="feed-retry" class="button button--secondary" type="button" hidden>Try again</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast-region" class="toast-region" role="status" aria-live="polite" aria-atomic="false"></div>
+
+  <template id="kudos-card-template">
+    <li class="kudos-card">
+      <div class="kudos-card__header">
+        <span class="avatar kudos-card__avatar" aria-hidden="true"></span>
+        <p class="kudos-card__people">
+          <span class="kudos-card__giver"></span>
+          <span class="kudos-card__arrow" aria-hidden="true">→</span>
+          <span class="visually-hidden">gave kudos to</span>
+          <span class="kudos-card__recipient"></span>
+        </p>
+        <time class="kudos-card__time"></time>
+      </div>
+      <p class="kudos-card__message"></p>
+    </li>
+  </template>
+
+  <template id="moderation-card-template">
+    <li class="moderation-card">
+      <div class="moderation-card__header">
+        <p class="moderation-card__people">
+          <span class="moderation-card__giver"></span>
+          <span aria-hidden="true">→</span>
+          <span class="visually-hidden">gave kudos to</span>
+          <span class="moderation-card__recipient"></span>
+        </p>
+        <span class="badge moderation-card__visibility"></span>
+      </div>
+      <p class="moderation-card__message"></p>
+      <div class="moderation-card__footer">
+        <time class="moderation-card__time"></time>
+        <div class="moderation-card__actions">
+          <button type="button" class="button button--small button--secondary hide-kudos">Hide</button>
+          <button type="button" class="button button--small button--secondary restore-kudos" hidden>Restore</button>
+          <button type="button" class="button button--small button--danger delete-kudos">Delete</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <dialog id="delete-dialog" class="dialog" aria-labelledby="delete-title" aria-describedby="delete-description">
+    <h2 id="delete-title">Delete this kudos permanently?</h2>
+    <blockquote id="delete-excerpt" class="dialog__excerpt"></blockquote>
+    <p id="delete-description">
+      Delete permanently removes this kudos from the database. It cannot be
+      restored. To hide it temporarily, use Hide instead.
+    </p>
+    <p id="delete-error" class="field-error" role="alert" hidden></p>
+    <div class="dialog__actions">
+      <button id="delete-cancel" class="button button--ghost" type="button">Cancel</button>
+      <button id="delete-confirm" class="button button--danger" type="button">Delete permanently</button>
+    </div>
+  </dialog>
+</body>
+</html>
