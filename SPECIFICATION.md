@@ -9,6 +9,11 @@
 
 > **This is the final approved specification for the Kudos demo.** The project owner formally approved the v0.2 requirements and technical design on 2026-10-18. Implementation and validation followed this approved specification. No requirements or design changes were made after approval. The frozen snapshots remain unchanged for review.
 
+## Repository
+
+- Public repository: https://github.com/AIreception/datacom-kudos-simulation
+- Initial implementation commit: 1c049f715656548b96ec248b9a7753cfbfea763a
+
 ## Approval Record
 
 On 2026-10-18, the project owner wrote, in the development conversation:
